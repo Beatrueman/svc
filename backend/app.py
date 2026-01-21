@@ -8,6 +8,7 @@ from models import db, User, File, Question, PasswordReset
 from auth import auth_bp
 from files import files_bp
 from questions import questions_bp
+from teacher import teacher_bp
 
 def create_app(config_name=None):
     print("Attempting to create Flask app...")
@@ -29,6 +30,7 @@ def create_app(config_name=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(files_bp)
     app.register_blueprint(questions_bp)
+    app.register_blueprint(teacher_bp)
     
     # 健康检查端点
     @app.route('/api/health', methods=['GET'])
