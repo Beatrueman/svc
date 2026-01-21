@@ -30,7 +30,7 @@
             <el-menu-item index="/files" route="/files">
               <template #title>文件管理</template>
             </el-menu-item>
-            <el-menu-item index="/questions" route="/questions">
+            <el-menu-item index="/questions" route="questions">
               <template #title>问题中心</template>
             </el-menu-item>
           </el-menu>

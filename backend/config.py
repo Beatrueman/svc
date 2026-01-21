@@ -13,7 +13,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     """开发配置"""
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///guidance.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///c:/Users/29262/Desktop/svc/backend/guidance.db'
     DEBUG = True
 
 class ProductionConfig(Config):
