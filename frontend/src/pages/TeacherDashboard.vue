@@ -29,8 +29,26 @@
             <el-menu-item index="/dashboard" route="/dashboard">
               <template #title>首页</template>
             </el-menu-item>
-            <el-menu-item index="/files" route="/files">
+            <el-menu-item v-if="isTeacher" index="/teacher-management" route="/teacher-management">
+              <template #title>学生管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isTeacher" index="/student-documents" route="/student-documents">
+              <template #title>毕设评阅</template>
+            </el-menu-item>
+            <el-menu-item v-if="isTeacher" index="/review-statistics" route="/review-statistics">
+              <template #title>评价统计</template>
+            </el-menu-item>
+            <el-menu-item v-if="isAdmin || isStudent" index="/files" route="/files">
               <template #title>文件管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isAdmin" index="/admin-management" route="/admin-management">
+              <template #title>用户管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isStudent" index="/teacher-ratings-display" route="/teacher-ratings-display">
+              <template #title>教师评价</template>
+            </el-menu-item>
+            <el-menu-item index="/teacher-ratings-display" route="/teacher-ratings-display">
+              <template #title>评价浏览</template>
             </el-menu-item>
             <el-menu-item index="/questions" route="/questions">
               <template #title>问题中心</template>
@@ -143,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { authAPI } from '@/api/auth';
@@ -160,6 +178,10 @@ const studentGroups = ref([]);
 const selectedQuestion = ref(null);
 const newMessage = ref('');
 const chatScrollbar = ref(null);
+// 检查用户身份
+const isStudent = computed(() => authStore.user?.user_type === 'student');
+const isAdmin = computed(() => authStore.user?.user_type === 'admin');
+const isTeacher = computed(() => authStore.user?.user_type === 'teacher');
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';

@@ -6,15 +6,18 @@
           <h1>毕业设计指导网站</h1>
         </div>
         <div class="header-right">
+          <el-tooltip content="消息箱" placement="bottom">
+            <el-badge :value="unreadCount > 0 ? unreadCount : ''" class="header-icon" @click="goToInbox">
+              <el-icon class="icon-button"><Notification /></el-icon>
+            </el-badge>
+          </el-tooltip>
           <el-dropdown>
-            <span class="user-info">
-              {{ authStore.user?.username }}
-              <el-icon class="icon"><arrow-down /></el-icon>
-            </span>
+            <el-icon class="user-icon"><User /></el-icon>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="goToProfile">个人信息</el-dropdown-item>
-                <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
+                <el-dropdown-item>{{ authStore.user?.username }}</el-dropdown-item>
+                <el-dropdown-item divided @click="goToProfile">个人信息</el-dropdown-item>
+                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -27,8 +30,26 @@
             <el-menu-item index="/dashboard" route="/dashboard">
               <template #title>首页</template>
             </el-menu-item>
-            <el-menu-item index="/files" route="/files">
+            <el-menu-item v-if="isTeacher" index="/teacher-management" route="/teacher-management">
+              <template #title>学生管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isTeacher" index="/student-documents" route="/student-documents">
+              <template #title>毕设评阅</template>
+            </el-menu-item>
+            <el-menu-item v-if="isTeacher" index="/review-statistics" route="/review-statistics">
+              <template #title>评价统计</template>
+            </el-menu-item>
+            <el-menu-item v-if="isAdmin || isStudent" index="/files" route="/files">
               <template #title>文件管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isAdmin" index="/admin-management" route="/admin-management">
+              <template #title>用户管理</template>
+            </el-menu-item>
+            <el-menu-item v-if="isStudent" index="/teacher-ratings-display" route="/teacher-ratings-display">
+              <template #title>教师评价</template>
+            </el-menu-item>
+            <el-menu-item v-if="isAdmin || isStudent" index="/teacher-ratings-display" route="/teacher-ratings-display">
+              <template #title>评价浏览</template>
             </el-menu-item>
             <el-menu-item index="/questions" route="/questions">
               <template #title>问题中心</template>
@@ -154,7 +175,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useAuthStore } from '@/stores/auth';
 import { authAPI } from '@/api/auth';
 import { getQuestions, createQuestion, getQuestionDetails, createMessage, deleteQuestion as deleteQuestionAPI } from '@/api/questions';
-import { ArrowDown, Plus, Close } from '@element-plus/icons-vue';
+import { Notification, User, Search, Plus, Close } from '@element-plus/icons-vue'
 
 const router = useRouter();
 const route = useRoute();
@@ -174,6 +195,9 @@ const newQuestionForm = ref({
   content: '',
 });
 
+// 检查用户身份
+const isStudent = computed(() => authStore.user?.user_type === 'student');
+const isAdmin = computed(() => authStore.user?.user_type === 'admin');
 const fetchQuestions = async () => {
   try {
     const response = await getQuestions();
@@ -403,24 +427,56 @@ onMounted(() => {
   flex-direction: column;
 }
 .header {
-  background-color: #667eea;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  flex-shrink: 0;
-}
-.header .header-left h1 {
-  margin: 0;
-  font-size: 24px;
-}
-.header .header-right .user-info {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+
+    .header-left h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .header-icon {
+        cursor: pointer;
+        font-size: 20px;
+        transition: all 0.3s;
+
+        .icon-button {
+          color: white;
+          transition: transform 0.3s;
+
+          &:hover {
+            transform: scale(1.2);
+          }
+        }
+
+        :deep(.el-badge__content) {
+          background-color: #f56c6c;
+        }
+      }
+
+      .user-icon {
+        cursor: pointer;
+        font-size: 24px;
+        color: white;
+        transition: transform 0.3s;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
 .aside {
   background-color: #f5f5f5;
   border-right: 1px solid #e0e0e0;
