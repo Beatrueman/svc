@@ -5,8 +5,45 @@ from models import db, User, PasswordReset
 from datetime import datetime, timedelta
 import secrets
 import re
+from flask_mail import Mail, Message  # 添加邮件支持
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+
+# 配置邮件
+mail = Mail()
+
+def send_reset_email(user_email, token, username):
+    """发送密码重置邮件"""
+    try:
+        # 构建重置链接
+        reset_link = f"http://localhost:5173/reset-password/{token}"  # 前端重置密码页面URL
+        
+        # 创建邮件
+        msg = Message(
+            subject="密码重置请求",
+            recipients=[user_email],
+            html=f"""
+            <html>
+            <body>
+                <h2>密码重置请求</h2>
+                <p>您好 {username},</p>
+                <p>您请求重置密码，请点击下面的链接进行重置：</p>
+                <p><a href="{reset_link}">点击此处重置密码</a></p>
+                <p>如果上面的链接无法点击，请将以下地址复制到浏览器地址栏：</p>
+                <p>{reset_link}</p>
+                <p>此链接将在24小时后失效。</p>
+                <p>如果您没有请求重置密码，请忽略此邮件。</p>
+                <br/>
+                <p>毕业设计指导网站</p>
+            </body>
+            </html>
+            """
+        )
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"邮件发送失败: {str(e)}")
+        return False
 
 def validate_email(email):
     """验证邮箱格式"""
@@ -188,8 +225,13 @@ def forgot_password():
             # 出于安全考虑，即使邮箱不存在也返回相同信息
             return jsonify({
                 'code': 200,
-                'message': '如果该邮箱已注册，您将收到密码重置链接'
+                'message': '如果该邮箱已注册，您将很快收到密码重置链接'
             }), 200
+        
+        # 删除过期的重置记录
+        expired_resets = PasswordReset.query.filter(PasswordReset.expires_at < datetime.utcnow()).all()
+        for reset in expired_resets:
+            db.session.delete(reset)
         
         # 生成重置令牌
         token = secrets.token_urlsafe(32)
@@ -204,14 +246,22 @@ def forgot_password():
         db.session.add(reset)
         db.session.commit()
         
-        # TODO: 发送邮件，暂时返回令牌用于测试
-        return jsonify({
-            'code': 200,
-            'message': '如果该邮箱已注册，您将收到密码重置链接',
-            'data': {
-                'token': token  # 测试环境下返回，生产环境应通过邮件发送
-            }
-        }), 200
+        # 发送重置邮件
+        success = send_reset_email(user.email, token, user.username)
+        
+        if success:
+            return jsonify({
+                'code': 200,
+                'message': '如果该邮箱已注册，您将很快收到密码重置链接'
+            }), 200
+        else:
+            # 如果邮件发送失败，删除刚创建的重置记录
+            db.session.delete(reset)
+            db.session.commit()
+            return jsonify({
+                'code': 500,
+                'message': '邮件发送失败，请稍后重试'
+            }), 500
     
     except Exception as e:
         db.session.rollback()

@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from config import config
 from models import db, User, File, Question, PasswordReset
-from auth import auth_bp
+from auth import auth_bp, mail  # 导入mail实例
 from files import files_bp
 from questions import questions_bp
 from teacher import teacher_bp
@@ -20,8 +20,16 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
+    # 邮件配置 - 从环境变量获取，或使用默认值
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER') or 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT') or 587)
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    
     # 初始化扩展
     db.init_app(app)
+    mail.init_app(app)  # 初始化邮件
     Migrate(app, db)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     JWTManager(app)
@@ -40,7 +48,8 @@ def create_app(config_name=None):
     # 创建数据库表和默认管理员
     with app.app_context():
         db.create_all()
-        create_default_admin()
+        # 注释掉这一行，因为我们现在使用迁移
+        # create_default_admin()
     
     # 错误处理
     @app.errorhandler(404)

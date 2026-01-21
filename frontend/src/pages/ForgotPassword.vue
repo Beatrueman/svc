@@ -29,6 +29,17 @@
         </el-button>
       </el-form>
 
+      <div class="instructions">
+        <h4>如何重置密码：</h4>
+        <ol>
+          <li>输入您的注册邮箱地址</li>
+          <li>检查您的邮箱（包括垃圾邮件文件夹）</li>
+          <li>点击邮件中的重置链接</li>
+          <li>输入新密码并确认</li>
+          <li>使用新密码登录</li>
+        </ol>
+      </div>
+
       <p class="back-link">
         <router-link to="/login">返回登录</router-link>
       </p>
@@ -102,8 +113,31 @@ const handleSubmit = async () => {
     .description {
       text-align: center;
       color: #666;
+      margin-bottom: 30px;
       font-size: 14px;
-      margin-bottom: 25px;
+    }
+
+    .instructions {
+      margin: 25px 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      border-left: 4px solid #667eea;
+
+      h4 {
+        margin-top: 0;
+        color: #333;
+      }
+
+      ol {
+        padding-left: 20px;
+        margin-bottom: 0;
+
+        li {
+          margin-bottom: 8px;
+          line-height: 1.4;
+        }
+      }
     }
 
     .back-link {
